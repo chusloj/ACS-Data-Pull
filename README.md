@@ -5,4 +5,4 @@ Custom R application for pulling and processing data from American Community Sur
 
 
 **TODO**:
-- Separate files into *main*, *data_pull*, and *funcs*
+- Separate files into `main`, `data_pull`, and `funcs`
