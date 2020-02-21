@@ -1,7 +1,7 @@
 # RKG-Data-Pull
 Custom R application for pulling and processing data from American Community Survey
 
-[RKG Associates](https://www.rkgassociates.com) *(Open link in new tab/window)*
+[RKG Associates](https://www.rkgassociates.com) *(Please open this link in a new tab/window)*
 
 
 **TODO**:
