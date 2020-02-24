@@ -2,52 +2,73 @@ library(tidyverse)
 library(tidycensus)
 library(readxl)
 library(openxlsx)
-
-setwd("~/Documents/career/RKG")
-census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551")
 source("funcs.r")
-
-# Main ----
-# open <- Sys.time()
+###
 
 
-labels <- read_excel("Data Pull_NashuaNH.xlsx",sheet="Data Pull")
+
+# Parameters ----
+setwd("~/Documents/career/RKG/code/RKG-Data-Pull")
+data_path <- "~/Documents/career/RKG/data/"
+read_file <- "Data Pull_NashuaNH.xlsx"
+var_sheet <- "Data Pull"
+
+census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551")
+
+# data(fips_codes)
+
+# inputs ----
+acs_year <- 2013
+geo_level <- "county subdivision"
+st <- "NH"
+cnty <- "Hillsborough county"
+survey_type <- "acs5"
+
+
+
+
+# labels/vars ----
+labels <- read_excel(paste(data_path,read_file,sep=""),sheet=var_sheet)
 labels <- filter(labels, Source=="ACS Data")
-labels <- labels[1:3]
 tables <- labels[2]
-titles <- labels[3]
 
-vars <- load_variables(2018, "acs5", cache = TRUE)
+vars <- load_variables(acs_year, survey_type, cache = TRUE)
 vars <- select(vars, "name","label")
 vars <- rename(vars, "variable"="name")
 
 
+
+
+# wb setup ----
 # wb <- createWorkbook()
-wb <- loadWorkbook("Data Pull_NashuaNH.xlsx")
+wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
-j <- nrow(tables)
-# j <- 5
-
-for(i in 1:j) {
-  df <- get_acs(geography="state",
+# loop ----
+for(i in 1:nrow(tables)) {
+  df <- get_acs(geography=geo_level,
               table = tables[[i,1]],
-              cache_table = TRUE,
-              state = "NH",
-              year = 2018,
-              survey = "acs5")
+              state = st,
+              county = cnty,
+              year = acs_year,
+              survey = survey_type)
   
-  if(i==1){fin_df <- sexage.func(df)} else {fin_df <- df}
-  
+  df <- df %>%
+    filter(str_detect(NAME, 'Nashua city'))
   
   sht <- tables[[i,1]]
   addWorksheet(wb,sht)
-  writeData(wb,sht,fin_df)
+  writeData(wb,sht,df)
+  
+  if(i==1){sexage.func(df)}
 }
 
-saveWorkbook(wb,"Data.xlsx",overwrite = T)
 
 
-# close <- Sys.time()
-# close-open
+# save ----
+cnty_name <- str_replace(cnty," ","_")
 
 
+name <- "Nashua City"
+write_file <- paste(name,st,acs_year,"Data.xlsx",sep="_")
+write_file <- paste(data_path,write_file,sep="")
+saveWorkbook(wb,write_file,overwrite = T)
