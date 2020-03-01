@@ -1,2 +1,2 @@
-# RKG-Data-Pull
+# ACS-Data-Pull
 R application for pulling and processing data from American Community Survey
