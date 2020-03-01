@@ -1,14 +1,15 @@
+setwd("~/Documents/career/RKG/code/RKG-Data-Pull")
 library(tidyverse)
 library(tidycensus)
 library(readxl)
 library(openxlsx)
 source("funcs.r")
+source("call.r")
 ###
 
 
 
 # Parameters ----
-setwd("~/Documents/career/RKG/code/RKG-Data-Pull")
 data_path <- "~/Documents/career/RKG/data/"
 read_file <- "Data Pull_NashuaNH.xlsx"
 var_sheet <- "Data Pull"
@@ -18,57 +19,72 @@ census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551")
 # data(fips_codes)
 
 # inputs ----
-acs_year <- 2013
+acs_years <-c(2013,2018)
 geo_level <- "county subdivision"
 st <- "NH"
 cnty <- "Hillsborough county"
 survey_type <- "acs5"
 
+cnty_name <- str_replace(cnty," ","_")
 
+name <- "Nashua City" ## CHOOSE st, cnty_name, or insert a custom name
 
-
-# labels/vars ----
+# labels ----
 labels <- read_excel(paste(data_path,read_file,sep=""),sheet=var_sheet)
 labels <- filter(labels, Source=="ACS Data")
 tables <- labels[2]
 
-vars <- load_variables(acs_year, survey_type, cache = TRUE)
-vars <- select(vars, "name","label")
-vars <- rename(vars, "variable"="name")
-
-
-
 
 # wb setup ----
-# wb <- createWorkbook()
 wb <- loadWorkbook(paste(data_path,read_file,sep=""))
+# wb <- createWorkbook()
+
 
 # loop ----
-for(i in 1:nrow(tables)) {
+for(t in 1:nrow(tables)){
+  col_num <- 1
   df <- get_acs(geography=geo_level,
-              table = tables[[i,1]],
+              table = tables[[t,1]],
               state = st,
               county = cnty,
-              year = acs_year,
+              year = acs_years[1],
               survey = survey_type)
-  
-  df <- df %>%
-    filter(str_detect(NAME, 'Nashua city'))
-  
-  sht <- tables[[i,1]]
+
+  if(geo_level=="county subdivision"){
+    df <- df %>%
+      filter(str_detect(NAME, 'Nashua city'))
+  }
+
+
+  sht <- tables[[t,1]]
   addWorksheet(wb,sht)
-  writeData(wb,sht,df)
+  writeData(wb,sht,df,startCol = col_num)
+
+  call.func(t)
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  col_num <- ncol(df)+5
+  #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  df_2 <- get_acs(geography=geo_level,
+                table = tables[[t,1]],
+                state = st,
+                county = cnty,
+                year = acs_years[2],
+                survey = survey_type)
   
-  if(i==1){sexage.func(df)}
+  if(geo_level=="county subdivision"){
+    df_2 <- df_2 %>%
+      filter(str_detect(NAME, 'Nashua city'))
+  }
+  
+  sht <- tables[[t,1]]
+  writeData(wb,sht,df_2,startCol = col_num)
+  
+  call.func(t)
 }
 
 
-
 # save ----
-cnty_name <- str_replace(cnty," ","_")
-
-
-name <- "Nashua City"
-write_file <- paste(name,st,acs_year,"Data.xlsx",sep="_")
+write_file <- paste(name,st,"Data.xlsx",sep="_")
 write_file <- paste(data_path,write_file,sep="")
 saveWorkbook(wb,write_file,overwrite = T)
+print(write_file)
