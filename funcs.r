@@ -36,15 +36,16 @@ sexage.func <- function(df_insert){
   
   fin_df <- arrange(fin_df,fin_df$ages)
   
+  # THERE IS A PROBLEM HERE
   vals <- c()
   vals <- append( vals,(fin_df %>% group_by(ages < 18) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(ages >= 18 & ages <= 24) %>% summarise(estimate=sum(estimate)))[[2,2]] ) 
+  vals <- append( vals,(fin_df %>% group_by(ages >= 18 & ages <= 24) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append( vals,(fin_df %>% group_by(ages >= 25 & ages <= 34) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append( vals,(fin_df %>% group_by(ages >= 35 & ages <= 44) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append( vals,(fin_df %>% group_by(ages >= 45 & ages <= 54) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append( vals,(fin_df %>% group_by(ages >= 55 & ages <= 64) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append( vals,(fin_df %>% group_by(ages > 64) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  
+
   col_labels <- c(
     "Under 18",
     "18 to 24 years",
@@ -57,4 +58,24 @@ sexage.func <- function(df_insert){
   
   write_df <- data.frame(labels = col_labels, estimates = vals)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
+}
+
+race.func <- function(df_insert){
+  vars <- load_variables(acs_years[1], survey_type, cache = TRUE)
+  vars <- select(vars, "name","label")
+  vars <- rename(vars, "variable"="name")
+  
+  fin_df <- inner_join(vars,df_insert,by = "variable")
+  
+  fin_df <- fin_df %>%
+    filter(!str_detect(fin_df$label, "including"))
+  fin_df <- fin_df %>%
+    filter(!str_detect(fin_df$label, "excluding"))
+  fin_df <- fin_df %>%
+    filter(!fin_df$variable=="B02001_001")
+  
+  fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
+  fin_df$label <- str_remove_all(fin_df$label, " alone")
+  
+  fin_df <- select(fin_df,"label","estimate")
 }

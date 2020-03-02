@@ -17,6 +17,7 @@ var_sheet <- "Data Pull"
 census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551")
 
 # data(fips_codes)
+vars <- load_variables(2013,"acs5",cache=TRUE)
 
 # inputs ----
 acs_years <-c(2013,2018)
@@ -41,7 +42,7 @@ wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
 
 # loop ----
-for(t in 1:nrow(tables)){
+for(t in 1:1){
   col_num <- 1
   df <- get_acs(geography=geo_level,
               table = tables[[t,1]],
@@ -52,7 +53,7 @@ for(t in 1:nrow(tables)){
 
   if(geo_level=="county subdivision"){
     df <- df %>%
-      filter(str_detect(NAME, 'Nashua city'))
+      filter(str_detect(NAME, name))
   }
 
 
@@ -60,10 +61,13 @@ for(t in 1:nrow(tables)){
   addWorksheet(wb,sht)
   writeData(wb,sht,df,startCol = col_num)
 
+  df_func <- df
   call.func(t)
+  
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   col_num <- ncol(df)+5
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
   df_2 <- get_acs(geography=geo_level,
                 table = tables[[t,1]],
                 state = st,
@@ -73,12 +77,13 @@ for(t in 1:nrow(tables)){
   
   if(geo_level=="county subdivision"){
     df_2 <- df_2 %>%
-      filter(str_detect(NAME, 'Nashua city'))
+      filter(str_detect(NAME, name))
   }
   
   sht <- tables[[t,1]]
   writeData(wb,sht,df_2,startCol = col_num)
   
+  df_func <- df
   call.func(t)
 }
 

@@ -22,11 +22,27 @@ wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
 
 df <- get_acs(geography=geo_level,
-              table = "B01003",
+              table = "B01001",
               state = st,
               county = cnty,
               cache_table = TRUE,
               year = acs_years[1],
               survey = survey_type)
   
-  
+vars <- load_variables(acs_years[1], survey_type, cache = TRUE)
+vars <- select(vars, "name","label")
+vars <- rename(vars, "variable"="name")
+
+fin_df <- inner_join(vars,df,by = "variable")
+
+fin_df <- fin_df %>%
+  filter(!str_detect(fin_df$label, "including"))
+fin_df <- fin_df %>%
+  filter(!str_detect(fin_df$label, "excluding"))
+fin_df <- fin_df %>%
+  filter(!fin_df$variable=="B02001_001")
+
+fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
+fin_df$label <- str_remove_all(fin_df$label, " alone")
+
+fin_df <- select(fin_df,"label","estimate")

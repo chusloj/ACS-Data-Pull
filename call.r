@@ -4,8 +4,9 @@
 call.func <- function(t){
   
   #Sex by age
-  if(t==1){sexage.func(df)}
+  if(tables[[t,1]]=="B01001"){sexage.func(df_func)}
   
-  #
+  #Race
+  if(tables[[t,1]]=="B02001"){race.func(df_func)}
   
 }
