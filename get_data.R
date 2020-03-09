@@ -1,4 +1,14 @@
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull")
+# install.packages(
+#   "tidyverse",
+#   "tidycensus",
+#   "readxl",
+#   "openxlsx"
+# )
+
+# After you have run the code above, please either delete the code
+# or comment out the code using Ctrl-Shift-C
+
+
 library(tidyverse)
 library(tidycensus)
 library(readxl)
@@ -7,30 +17,43 @@ source("funcs.r")
 source("call.r")
 
 
+# %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
+
+census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551") # YOU NEED YOUR OWN
+
+
+setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # SET YOUR DIRECTORY (this is where the code files live)
+
+
 
 # Parameters ----
-data_path <- "~/Documents/career/RKG/data/"
-read_file <- "Data Pull_NashuaNH.xlsx"
-var_sheet <- "Data Pull"
-census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551")
+data_path <- "~/Documents/career/RKG/data/"     # This is the path where "read_file" lives
+read_file <- "Data Pull_NashuaNH.xlsx"     # This is the file that contains codes for all tables you want to pull
+var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that contains the information mentioned above
+
 
 
 
 # inputs ----
-acs_years <-c(2013,2018)
-geo_level <- "county"
-st <- "NH"
-cnty <- "Hillsborough county"
-survey_type <- "acs5"
+acs_years <-c(2013,2018)   # Please pick 2 separate years
+st <- "NH"     # state
+geo_level <- "county subdivision"  # geographic level. search "tidycensus" online to see different options
+cnty <- "Hillsborough county"   # County
+survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
-cnty_name <- str_replace(cnty," ","_")
-name <- cnty_name
-# ******** IMPORTANT **********
+
+name <- "Nashua city"
+# ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
 # in the data pulled from the acs
+
+
+# %%%%%%%%%%% STOP MESSING WITH THIS %%%%%%%%%%%%%%%
+
+cnty_name <- str_replace(cnty," ","_")
 
 
 

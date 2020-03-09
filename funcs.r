@@ -505,12 +505,9 @@ value.func <- function(df_insert){
   
   fin_df <- fin_df %>% filter(!fin_df$variable=="B25075_001")
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
-  fin_df$inc <- str_sub(fin_df$label,2,9)
-  fin_df$inc <- str_replace(fin_df$inc,",","")
-  fin_df$inc <- str_remove_all(fin_df$inc," t")
-  fin_df$inc[fin_df$variable=="B25075_025"] <- "1000000"
-  fin_df$inc[fin_df$variable=="B25075_002"] <- "0"
-  fin_df$inc <- suppressWarnings(as.numeric(fin_df$inc))
+  
+  fin_df$inc <- parse_number(fin_df$label)
+  fin_df$inc[fin_df$variable=="B25075_002"] <- 0
   
   vals <- c()
   vals <- append(vals, (fin_df %>% group_by(inc < 50000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
@@ -521,7 +518,7 @@ value.func <- function(df_insert){
   vals <- append(vals, (fin_df %>% group_by(inc >= 250000 & inc < 300000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append(vals, (fin_df %>% group_by(inc >= 300000 & inc < 400000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   vals <- append(vals, (fin_df %>% group_by(inc >= 400000 & inc < 500000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc > 500000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+  vals <- append(vals, (fin_df %>% group_by(inc >= 500000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
   
   
   col_labels <- c(
