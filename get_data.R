@@ -36,15 +36,15 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
-st <- "NH"     # state
-geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
-cnty <- "Hillsborough county"   # County
+st <- "SC"     # state
+geo_level <- "place"  # geographic level. search "tidycensus" online to see different options
+cnty <- "Richland County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- cnty
+name <- "Cayce city"
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
@@ -81,18 +81,19 @@ open <- Sys.time()
 
 
 # loop ----
-for(t in 12:22){
+for(t in 20:nrow(tables)){
   col_num <- 1
   yr <- acs_years[1]
   df <- get_acs(geography=geo_level,
               table = tables[[t,1]],
               state = st,
-              county = cnty,
+              # county = cnty,
+              if(geo_level=="place"){} else{county = cnty},
               cache_table = TRUE,
               year = yr,
               survey = survey_type)
 
-  if(geo_level=="county subdivision"){
+  if(geo_level!="county"){
     df <- df %>%
       filter(str_detect(NAME, name))
   }
@@ -117,12 +118,13 @@ for(t in 12:22){
   df_2 <- get_acs(geography=geo_level,
                 table = tables[[t,1]],
                 state = st,
-                county = cnty,
+                # county = cnty,
+                if(geo_level=="place"){} else{county = cnty},
                 cache_table = TRUE,
                 year = yr,
                 survey = survey_type)
   
-  if(geo_level=="county subdivision"){
+  if(geo_level!="county"){
     df_2 <- df_2 %>%
       filter(str_detect(NAME, name))
   }

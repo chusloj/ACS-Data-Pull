@@ -278,7 +278,8 @@ occup.func <- function(df_insert){
   df_append <- get_acs(geography=geo_level,
                        table = "B25003",
                        state = st,
-                       county = cnty,
+                       if(geo_level=="place"){} else{county = cnty},
+                       # county = cnty,
                        cache_table = TRUE,
                        year = yr,
                        survey = survey_type)
@@ -310,7 +311,8 @@ ownrent.func <- function(df_insert){
   df_append <- get_acs(geography=geo_level,
                        table = "B25002",
                        state = st,
-                       county = cnty,
+                       if(geo_level=="place"){} else{county = cnty},
+                       # county = cnty,
                        cache_table = TRUE,
                        year = yr,
                        survey = survey_type)
@@ -352,19 +354,13 @@ ownage.func <- function(df_insert){
   
   
   fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner"))
-  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Owner occupied!!Householder ")
-  fin_df$age <- str_sub(fin_df$label,1,2)
-  fin_df$age[fin_df$variable=="B25007_002"] <- 0
+    filter(str_detect(fin_df$label,"Owner") | str_detect(fin_df$label,"Renter"))
+  fin_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Householder"))
   
-  vals <- c()
-  vals <- append( vals,(fin_df %>% group_by(age >= 15 & age <= 24) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(age >= 25 & age <= 34) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(age >= 35 & age <= 44) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(age >= 45 & age <= 54) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(age >= 55 & age <= 64) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(age >= 65) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  
+  alllabels <- c()
+  allvals <- c()
+  types <- c("Owner","Renter")
   col_labels <- c(
     "15 to 24 years",
     "25 to 34 years",
@@ -375,7 +371,30 @@ ownage.func <- function(df_insert){
   )
   
   
-  write_df <- data.frame(labels = col_labels, estimates = vals)
+  
+  for(i in types){
+    age_df <- fin2_df %>%
+      filter(str_detect(fin_df$label,i))
+    
+    age_df$label <- str_remove_all(age_df$label,"Estimate!!Total!!")
+    age_df$label <- str_remove_all(age_df$label,paste(i,"occupied!!Householder ",sep=" "))
+    
+    age_df$age <- parse_number(age_df$label)
+    
+    vals <- c()
+    vals <- append( vals,(age_df %>% group_by(age >= 15 & age <= 24) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(age_df %>% group_by(age >= 25 & age <= 34) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(age_df %>% group_by(age >= 35 & age <= 44) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(age_df %>% group_by(age >= 45 & age <= 54) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(age_df %>% group_by(age >= 55 & age <= 64) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(age_df %>% group_by(age >= 65) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    
+    allvals <- append(allvals,vals)
+    alllabels <- append(alllabels,paste(i,col_labels,sep=": "))
+  }
+  
+  
+  write_df <- data.frame(labels = alllabels, estimates = allvals)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
 }
 
@@ -390,16 +409,33 @@ numoccup.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Owner") | str_detect(fin_df$label,"Renter"))
+  fin_df <- fin_df %>%
+    filter(!(fin_df$variable=="B25009_002" | fin_df$variable=="B25009_010"))
+  
+  own_df <- fin_df %>%
     filter(str_detect(fin_df$label,"Owner"))
-  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Owner occupied!!")
-  fin_df$age <- str_sub(fin_df$label,1,1)
-  fin_df <- fin_df %>%
-    filter(!fin_df$variable=="B25009_002")
-  fin_df$label[fin_df$variable=="B25009_007"] <- "5-or-more person household"
-  fin_df$estimate[fin_df$variable=="B25009_007"] <- (fin_df %>% group_by(age >= 5) %>% summarise(estimate=sum(estimate)))[[2,2]]
-  fin_df <- fin_df %>%
-    filter(!(fin_df$variable=="B25009_008" | fin_df$variable=="B25009_009"))
-  fin_df <- select(fin_df, !moe)
+  own_df$label <- str_remove_all(own_df$label,"Estimate!!Total!!Owner occupied!!")
+  own_df$per <- parse_number(own_df$label)
+  plus <- sum(own_df$estimate[own_df$per>=5])
+  own_df <- own_df %>%
+    filter(own_df$per<=5)
+  own_df$estimate[own_df$per==5] <- plus
+  own_df$label[own_df$per==5] <- "5-or-more person household"
+  own_df$label <- paste("Owner occupied",own_df$label,sep=": ")
+  
+  rent_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Renter"))
+  rent_df$label <- str_remove_all(rent_df$label,"Estimate!!Total!!Renter occupied!!")
+  rent_df$per <- parse_number(rent_df$label)
+  plus <- sum(rent_df$estimate[rent_df$per>=5])
+  rent_df <- rent_df %>%
+    filter(rent_df$per<=5)
+  rent_df$estimate[rent_df$per==5] <- plus
+  rent_df$label[rent_df$per==5] <- "5-or-more person household"
+  rent_df$label <- paste("Renter occupied",rent_df$label,sep=": ")
+  
+  fin_df <- rbind(own_df,rent_df)
   
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -493,24 +529,38 @@ ownedyrhouse.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner"))
-  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Owner occupied!!Built ")
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25036_002")
-  fin_df$year <- str_sub(fin_df$label,1,4)
+    filter(str_detect(fin_df$label,"Owner") | str_detect(fin_df$label,"Renter"))
+  fin_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Built"))
+  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
   
-  vals <- c()
-  vals <- append( vals,(fin_df %>% group_by(year >= 2000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(year >= 1980 & year < 2000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(year >= 1960 & year < 1980) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append( vals,(fin_df %>% group_by(year < 1960) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+  alllabels <- c()
+  allvals <- c()
+  types <- c("Owner","Renter")
   
-  col_labels <- c(
-    "2000 or later",
-    "Between 1980 and 1999",
-    "Between 1960 and 1979",
-    "1959 or earlier"
-  )
-  write_df <- data.frame(labels = col_labels, estimates = vals)
+  for(i in types){
+    med_df <- fin_df %>% filter(str_detect(fin_df$label,i))
+    med_df$label <- str_remove_all(med_df$label,".*!!Built ")
+    med_df$year <- parse_number(med_df$label)
+    
+    vals <- c()
+    vals <- append( vals,(med_df %>% group_by(year >= 2000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(med_df %>% group_by(year >= 1980 & year < 2000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(med_df %>% group_by(year >= 1960 & year < 1980) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append( vals,(med_df %>% group_by(year < 1960) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    
+    col_labels <- c(
+      "2000 or later",
+      "Between 1980 and 1999",
+      "Between 1960 and 1979",
+      "1959 or earlier"
+    )
+    
+    allvals <- append(allvals,vals)
+    alllabels <- append(alllabels,paste(i,"occupied: Built",col_labels,sep=" "))
+  }
+  
+  write_df <- data.frame(labels = alllabels, estimates = allvals)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
 }
 
@@ -622,7 +672,8 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  county = cnty,
+                  if(geo_level=="place"){} else{county = cnty},
+                  # county = cnty,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
@@ -648,7 +699,8 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  county = cnty,
+                  if(geo_level=="place"){} else{county = cnty},
+                  # county = cnty,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
@@ -691,26 +743,11 @@ teninc.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner occupied!!"))
-  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Owner occupied!!")
-  fin_df$inc <- str_sub(fin_df$label,1,8)
-  fin_df$inc <- str_replace(fin_df$inc,",","")
-  fin_df$inc <- str_remove_all(fin_df$inc," t")
-  fin_df$inc <- str_sub(fin_df$inc,2)
-  fin_df$inc[fin_df$variable=="B25118_003"] <- "0"
-  fin_df$inc <- as.numeric(fin_df$inc)
+    filter(str_detect(fin_df$label,"Owner occupied!!") | str_detect(fin_df$label,"Renter occupied!!"))
   
-  vals <- c()
-  vals <- append(vals, (fin_df %>% group_by(inc < 15000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 15000 & inc < 25000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 25000 & inc < 35000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 35000 & inc < 50000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 50000 & inc < 75000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 75000 & inc < 100000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 100000 & inc < 150000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  vals <- append(vals, (fin_df %>% group_by(inc >= 150000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
-  
-  
+  allvals <- c()
+  alllabels <- c()
+  types <- c("Owner","Renter")
   col_labels <- c(
     "< $15,000",
     "$15,000 - $24,999",
@@ -722,7 +759,32 @@ teninc.func <- function(df_insert){
     "$150,000 or more"
   )
   
-  write_df <- data.frame(labels = col_labels, estimates = vals)
+  
+  for(i in types){
+    med_df <- fin_df %>%
+      filter(str_detect(fin_df$label,i))
+    med_df$label <- str_remove_all(med_df$label,".* occupied!!")
+    
+    med_df$inc <- parse_number(med_df$label)
+    med_df$inc[str_detect(med_df$label,"Less than")] <- 0
+    
+    
+    
+    vals <- c()
+    vals <- append(vals, (med_df %>% group_by(inc < 15000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 15000 & inc < 25000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 25000 & inc < 35000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 35000 & inc < 50000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 50000 & inc < 75000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 75000 & inc < 100000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 100000 & inc < 150000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (med_df %>% group_by(inc >= 150000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    
+    allvals <- append(allvals,vals)
+    alllabels <- append(alllabels,paste(i,"occupied:",col_labels,sep=" "))
+  }
+  
+  write_df <- data.frame(labels = alllabels, estimates = allvals)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
 }
 
