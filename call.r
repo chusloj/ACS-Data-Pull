@@ -20,6 +20,9 @@ call.func <- function(t,df_func){
   #Income
   if(tables[[t,1]]=="B19001"){inc.func(df_func)}
   
+  #Income by age of householder
+  if(tables[[t,1]]=="B19037"){incage.func(df_func)}
+  
   #Occupied/vacant
   if(tables[[t,1]]=="B25002"){occup.func(df_func)}
   
@@ -35,11 +38,8 @@ call.func <- function(t,df_func){
   #(total) home occupation by type
   if(tables[[t,1]]=="B25024"){hometypetotal.func(df_func)}
   
-  #(owned) home occupation by type
-  if(tables[[t,1]]=="B25032"){hometypeown.func(df_func)} # COMBINE THIS AND THE ONE BELOW into one function
-  
-  #(rented) home occupation by type
-  if(tables[[t,1]]=="B25032"){hometyperent.func(df_func)} # COMBINE THIS AND THE ONE ABOVE into one function
+  #(owned and rented) home occupation by type
+  if(tables[[t,1]]=="B25032"){hometypeownrent.func(df_func)} # COMBINE THIS AND THE ONE BELOW into one function
   
   #(total) year home was built
   if(tables[[t,1]]=="B25034"){totalyrhouse.func(df_func)}

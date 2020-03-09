@@ -37,14 +37,14 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
 st <- "NH"     # state
-geo_level <- "county subdivision"  # geographic level. search "tidycensus" online to see different options
+geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
 cnty <- "Hillsborough county"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
-
-name <- "Nashua city"
+cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
+name <- cnty
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
@@ -53,7 +53,7 @@ name <- "Nashua city"
 
 # %%%%%%%%%%% STOP MESSING WITH THIS %%%%%%%%%%%%%%%
 
-cnty_name <- str_replace(cnty," ","_")
+
 
 
 
@@ -81,7 +81,7 @@ open <- Sys.time()
 
 
 # loop ----
-for(t in 1:nrow(tables)){
+for(t in 12:22){
   col_num <- 1
   yr <- acs_years[1]
   df <- get_acs(geography=geo_level,

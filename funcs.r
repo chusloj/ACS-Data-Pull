@@ -206,6 +206,71 @@ inc.func <- function(df_insert){
 
 
 
+
+
+incage.func <- function(df_insert){
+  row_count <- nrow(df_insert)
+  fin_df <- df_insert
+  
+  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Householder ")
+  fin_df <- fin_df %>% filter(str_detect(fin_df$label,"\\$"))
+  
+  alllabels <- c()
+  allvals <- c()
+  brackets <- c("under 25 years","25 to 44 years","45 to 64 years","65 years and over")
+  
+  for(i in brackets){
+    age_df <- fin_df %>% filter(str_detect(fin_df$label,i))
+    age_df$label <- gsub(".*!!","",age_df$label)
+    age_df$inc <- parse_number(age_df$label)
+    age_df$inc[str_detect(age_df$label,"Less than")] <- 0
+    
+    vals <- c()
+    vals <- append(vals, (age_df %>% group_by(inc < 15000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 15000 & inc < 25000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 25000 & inc < 35000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 35000 & inc < 50000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 50000 & inc < 75000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 75000 & inc < 100000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 100000 & inc < 150000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 150000 & inc < 200000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    vals <- append(vals, (age_df %>% group_by(inc >= 200000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
+    
+    
+    col_labels <- c()
+    dol <- c(
+      "<$15,000",
+      "$15,000 - $24,999",
+      "$25,000 - $34,999",
+      "$35,000 - $49,999",
+      "$50,000 - $74,999",
+      "$75,000 - $99,999",
+      "$100,000 - $149,999",
+      "$150,000 - $199,999",
+      "$200,000+"
+    )
+    
+    for(j in dol){
+      col_labels <- append(col_labels,paste(i,j,sep=": "))
+    }
+    
+    alllabels <- append(alllabels,col_labels)
+    allvals <- append(allvals,vals)
+  }
+  
+  write_df <- data.frame(labels = alllabels, estimates = allvals)
+  writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
+}
+
+
+
+
+
+
+
+
+
+
 occup.func <- function(df_insert){
   row_count <- nrow(df_insert)
   fin_df <- df_insert
@@ -229,8 +294,8 @@ occup.func <- function(df_insert){
     filter(!(fin_df_bind$variable=="B25002_001" | fin_df_bind$variable=="B25003_001" | fin_df_bind$variable=="B25002_002"))
   
   
-  write_df <- fin_df_bind
-  writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
+  write_df_2 <- fin_df_bind
+  writeData(wb,sht,write_df_2,startRow=row_count+5,startCol = col_num)
 }
 
 
@@ -261,8 +326,8 @@ ownrent.func <- function(df_insert){
     filter(!(fin_df_bind$variable=="B25002_001" | fin_df_bind$variable=="B25003_001" | fin_df_bind$variable=="B25002_002"))
   
   
-  write_df <- fin_df_bind
-  writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
+  write_df_3 <- fin_df_bind
+  writeData(wb,sht,write_df_3,startRow=row_count+5,startCol = col_num)
 }
 
 
@@ -367,14 +432,13 @@ hometypetotal.func <- function(df_insert){
 
 
 
-hometypeown.func <- function(df_insert){
+hometypeownrent.func <- function(df_insert){
   row_count <- nrow(df_insert)
   fin_df <- df_insert
   
-  fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner"))
+fin_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Owner") | str_detect(fin_df$label,"Renter"))
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25032_002")
   fin_df$label <- str_replace_all(fin_df$label,"!!",": ")
   
   write_df <- fin_df
@@ -383,23 +447,6 @@ hometypeown.func <- function(df_insert){
 
 
 
-
-
-
-
-hometyperent.func <- function(df_insert){
-  row_count <- nrow(df_insert)
-  fin_df <- df_insert
-  
-  fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Renter"))
-  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25032_013")
-  fin_df$label <- str_replace_all(fin_df$label,"!!",": ")
-  
-  write_df <- fin_df
-  writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
-}
 
 
 
@@ -620,7 +667,7 @@ ownrace.func <- function(df_insert){
     vals_h <- append(vals_h,fin_df$estimate[grep("*_002",fin_df$variable)])
   }
   
-  
+
   
   write_df <- data.frame(labels = races, estimates = vals_r)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
