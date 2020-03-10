@@ -373,7 +373,7 @@ ownage.func <- function(df_insert){
   
   
   for(i in types){
-    age_df <- fin2_df %>%
+    age_df <- fin_df %>%
       filter(str_detect(fin_df$label,i))
     
     age_df$label <- str_remove_all(age_df$label,"Estimate!!Total!!")

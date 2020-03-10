@@ -1,3 +1,5 @@
+setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # SET YOUR DIRECTORY (this is where the code files live)
+
 # install.packages(
 #   "tidyverse",
 #   "tidycensus",
@@ -20,9 +22,6 @@ source("call.r")
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
 
 census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551") # YOU NEED YOUR OWN
-
-
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # SET YOUR DIRECTORY (this is where the code files live)
 
 
 
@@ -81,7 +80,7 @@ open <- Sys.time()
 
 
 # loop ----
-for(t in 20:nrow(tables)){
+for(t in 1:nrow(tables)){
   col_num <- 1
   yr <- acs_years[1]
   df <- get_acs(geography=geo_level,
