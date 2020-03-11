@@ -23,11 +23,8 @@ call.func <- function(t,df_func){
   #Income by age of householder
   if(tables[[t,1]]=="B19037"){incage.func(df_func)}
   
-  #Occupied/vacant
-  if(tables[[t,1]]=="B25002"){occup.func(df_func)}
-  
-  #Own/rent
-  if(tables[[t,1]]=="B25003"){ownrent.func(df_func)}
+  #Occupied/vacant + Own/rent
+  if(tables[[t,1]]=="B25002"){occup_ownrent.func(df_func)}
   
   #Ownership by age
   if(tables[[t,1]]=="B25007"){ownage.func(df_func)}

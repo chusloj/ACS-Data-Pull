@@ -20,11 +20,8 @@ sexage.func <- function(df_insert){
   fin_df <- fin_df %>%
     filter(!str_detect(fin_df$label, "Female"))
   
-  # fin_df <- tibble::add_column(fin_df, ages = "")
-  fin_df$ages <- NA
-  
   # Create the 'ages' column
-  fin_df$ages <- suppressWarnings(as.numeric(str_sub(fin_df$label,1,2)))
+  fin_df$ages <- parse_number(fin_df$label)
   
   fin_df$ages[str_detect(fin_df$label,"Under 5")] <- 0
   fin_df$ages[str_detect(fin_df$label,"5 to 9")] <- 5
@@ -67,13 +64,12 @@ race.func <- function(df_insert){
     filter(!str_detect(fin_df$label, "including"))
   fin_df <- fin_df %>%
     filter(!str_detect(fin_df$label, "excluding"))
-  fin_df <- fin_df %>%
-    filter(!fin_df$variable=="B02001_001")
-  
   fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
-  fin_df$label <- str_remove_all(fin_df$label, " alone")
   
-  fin_df <- select(fin_df,label,estimate)
+  fin_df <- fin_df%>%
+    filter(!str_detect(fin_df$label,"Estimate!!Total"))
+  
+  fin_df$label <- str_remove_all(fin_df$label, " alone")
   
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -90,9 +86,8 @@ hispan.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
-    filter(fin_df$variable=="B03002_002" | fin_df$variable=="B03002_012")
+    filter(str_detect(fin_df$label,"Latino!!"))
   fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
-  fin_df <- select(fin_df,label,estimate)
 
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -109,7 +104,7 @@ educ.func <- function(df_insert){
   
   fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
   fin_df <- fin_df %>%
-    filter(!fin_df$variable=="B15003_001")
+    filter(!fin_df$label=="Estimate!!Total")
   
   fin_df$tab_var <- as.numeric(str_sub(fin_df$variable,-2,-1))
   
@@ -145,10 +140,11 @@ pov.func <- function(df_insert){
   
   
   fin_df <- fin_df %>%
-    filter(fin_df$variable=="B17001_001" | fin_df$variable=="B17001_002")
-  fin_df$label <- str_remove_all(fin_df$label, "Estimate!!")
-  fin_df$label <- str_remove(fin_df$label, "Total!!")
-  fin_df <- select(fin_df,label,estimate)
+    filter(!str_detect(fin_df$label,"level!!"))
+  fin_df <- fin_df %>%
+    filter(!str_detect(fin_df$label,"above"))
+  fin_df$label <- str_remove_all(fin_df$label,"Estimate!!")
+  fin_df$label <- str_replace(fin_df$label,"!!",": ")
   
   
   write_df <- fin_df
@@ -166,12 +162,9 @@ inc.func <- function(df_insert){
   
   fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
   fin_df <- fin_df %>%
-    filter(!fin_df$variable=="B19001_001")
-  fin_df$inc <- str_sub(fin_df$label,2,8)
-  fin_df$inc <- str_replace(fin_df$inc,",","")
-  fin_df$inc[fin_df$variable=="B19001_002"] <- 0
-  
-  fin_df$inc <- as.numeric(fin_df$inc)
+    filter(str_detect(fin_df$label,"\\$"))
+  fin_df$inc <- parse_number(fin_df$label)
+  fin_df$inc[str_detect(fin_df$label,"Less than \\$")] <- 0
   
   vals <- c()
   vals <- append(vals, (fin_df %>% group_by(inc < 15000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
@@ -271,71 +264,45 @@ incage.func <- function(df_insert){
 
 
 
-occup.func <- function(df_insert){
+occup_ownrent.func <- function(df_insert){
   row_count <- nrow(df_insert)
   fin_df <- df_insert
-  
+
   df_append <- get_acs(geography=geo_level,
                        table = "B25003",
                        state = st,
-                       if(geo_level=="place"){} else{county = cnty},
                        # county = cnty,
+                       if(geo_level=="place"){} else{county = cnty},
                        cache_table = TRUE,
                        year = yr,
                        survey = survey_type)
   
+  if(geo_level!="county"){
+    df_append <- df_append %>%
+      filter(str_detect(NAME, name))
+  }
   
-  df_bind <- bind_rows(fin_df,df_append)
-  fin_df_bind <- inner_join(vars,df_bind,by = "variable")
+  vars <- load_variables(yr, survey_type, cache = TRUE)
+  vars <- select(vars, "name","label")
+  vars <- rename(vars, "variable"="name")
   
-  fin_df_bind <- select(fin_df_bind,-label.y)
-  fin_df_bind <- rename(fin_df_bind,"label"="label.x")
-  fin_df_bind$label <- str_remove_all(fin_df_bind$label, "Estimate!!Total!!")
+  fin_df_append <- inner_join(vars,df_append,by = "variable")
+  
+  
+  
+  fin_df_bind <- bind_rows(fin_df,fin_df_append)
   fin_df_bind <- fin_df_bind %>%
-    filter(!(fin_df_bind$variable=="B25002_001" | fin_df_bind$variable=="B25003_001" | fin_df_bind$variable=="B25002_002"))
+    filter((str_detect(fin_df_bind$label,"Vacant") |
+              str_detect(fin_df_bind$label,"Owner occupied") |
+              str_detect(fin_df_bind$label,"Renter occupied")
+    ))
+  
+  fin_df_bind$label <- str_remove_all(fin_df_bind$label,"Estimate!!Total!!")
   
   
   write_df_2 <- fin_df_bind
   writeData(wb,sht,write_df_2,startRow=row_count+5,startCol = col_num)
 }
-
-
-
-
-
-
-ownrent.func <- function(df_insert){
-  row_count <- nrow(df_insert)
-  fin_df <- df_insert
-  
-  df_append <- get_acs(geography=geo_level,
-                       table = "B25002",
-                       state = st,
-                       if(geo_level=="place"){} else{county = cnty},
-                       # county = cnty,
-                       cache_table = TRUE,
-                       year = yr,
-                       survey = survey_type)
-  
-  
-  df_bind <- bind_rows(fin_df,df_append)
-  fin_df_bind <- inner_join(vars,df_bind,by = "variable")
-  
-  fin_df_bind <- select(fin_df_bind,-label.y)
-  fin_df_bind <- rename(fin_df_bind,"label"="label.x")
-  fin_df_bind$label <- str_remove_all(fin_df_bind$label, "Estimate!!Total!!")
-  fin_df_bind <- fin_df_bind %>%
-    filter(!(fin_df_bind$variable=="B25002_001" | fin_df_bind$variable=="B25003_001" | fin_df_bind$variable=="B25002_002"))
-  
-  
-  write_df_3 <- fin_df_bind
-  writeData(wb,sht,write_df_3,startRow=row_count+5,startCol = col_num)
-}
-
-
-
-
-
 
 
 
@@ -409,12 +376,12 @@ numoccup.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner") | str_detect(fin_df$label,"Renter"))
-  fin_df <- fin_df %>%
-    filter(!(fin_df$variable=="B25009_002" | fin_df$variable=="B25009_010"))
+    filter(str_detect(fin_df$label,"Total!!"))
   
   own_df <- fin_df %>%
     filter(str_detect(fin_df$label,"Owner"))
+  own_df <- own_df %>%
+    filter(!own_df$label=="Estimate!!Total!!Owner occupied")
   own_df$label <- str_remove_all(own_df$label,"Estimate!!Total!!Owner occupied!!")
   own_df$per <- parse_number(own_df$label)
   plus <- sum(own_df$estimate[own_df$per>=5])
@@ -426,6 +393,8 @@ numoccup.func <- function(df_insert){
   
   rent_df <- fin_df %>%
     filter(str_detect(fin_df$label,"Renter"))
+  rent_df <- rent_df %>%
+    filter(!rent_df$label=="Estimate!!Total!!Renter occupied")
   rent_df$label <- str_remove_all(rent_df$label,"Estimate!!Total!!Renter occupied!!")
   rent_df$per <- parse_number(rent_df$label)
   plus <- sum(rent_df$estimate[rent_df$per>=5])
@@ -454,8 +423,9 @@ hometypetotal.func <- function(df_insert){
   row_count <- nrow(df_insert)
   fin_df <- df_insert
   
+  fin_df <- fin_df %>%
+    filter(str_detect(fin_df$label,"Total!!"))
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25024_001")
   
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -495,8 +465,9 @@ totalyrhouse.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Built ")
-  fin_df$year <- str_sub(fin_df$label,1,4)
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25034_001")
+  fin_df <- fin_df %>%
+    filter(!(str_detect(fin_df$label,"Estimate!!Total")))
+  fin_df$year <- parse_number(fin_df$label)
   
   vals <- c()
   vals <- append( vals,(fin_df %>% group_by(year >= 2000) %>% summarise(estimate=sum(estimate)))[[2,2]] )
@@ -578,10 +549,8 @@ ownbeds.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df <- fin_df %>%
-    filter(str_detect(fin_df$label,"Owner"))
+    filter(str_detect(fin_df$label,"Owner occupied!!"))
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!Owner occupied!!")
-  fin_df <- fin_df %>%
-    filter(!fin_df$variable=="B25042_002")
   
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -600,7 +569,7 @@ value.func <- function(df_insert){
   row_count <- nrow(df_insert)
   fin_df <- df_insert
   
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B25075_001")
+  fin_df <- fin_df %>% filter(str_detect(fin_df$label,"\\$"))
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
   
   fin_df$inc <- parse_number(fin_df$label)
@@ -678,7 +647,7 @@ ownrace.func <- function(df_insert){
                   year = yr,
                   survey = survey_type)
     
-    if(geo_level=="county subdivision"){
+    if(geo_level!="county"){
       df <- df %>%
         filter(str_detect(NAME, name))
     }
@@ -705,7 +674,7 @@ ownrace.func <- function(df_insert){
                   year = yr,
                   survey = survey_type)
     
-    if(geo_level=="county subdivision"){
+    if(geo_level!="county"){
       df <- df %>%
         filter(str_detect(NAME, name))
     }
@@ -801,10 +770,9 @@ commute.func <- function(df_insert){
   fin_df <- df_insert
   
   fin_df$label <- str_remove_all(fin_df$label,"Estimate!!Total!!")
-  fin_df <- fin_df %>% filter(!fin_df$variable=="B08303_001")
-  fin_df$tm <- str_sub(fin_df$label,1,2)
-  fin_df$tm[fin_df$variable=="B08303_002"] <- "0"
-  fin_df$tm <- suppressWarnings(as.numeric(fin_df$tm))
+  fin_df <- fin_df %>% filter(!str_detect(fin_df$label,"Estimate!!Total"))
+  fin_df$tm <- parse_number(fin_df$label)
+  fin_df$tm[str_detect(fin_df$label,"Less than ")] <- 0
   
   vals <- c()
   vals <- append(vals, (fin_df %>% group_by(tm < 15) %>% summarise(estimate=sum(estimate)))[[2,2]] )

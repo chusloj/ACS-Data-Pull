@@ -1,4 +1,7 @@
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # SET YOUR DIRECTORY (this is where the code files live)
+# BEFORE ANYTHING, please select Session->Set Working Directory->"To Source File Location"
+# and copy the output you get from your console (below) into this "setwd" command vvv
+
+setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # PASTE YOUR DIRECTORY HERE
 
 # install.packages(
 #   "tidyverse",
@@ -78,7 +81,6 @@ wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
 open <- Sys.time()
 
-
 # loop ----
 for(t in 1:nrow(tables)){
   col_num <- 1
@@ -152,5 +154,11 @@ write_file <- paste(data_path,write_file,sep="")
 saveWorkbook(wb,write_file,overwrite = T)
 print(write_file)
 
+
 close <- Sys.time()
 print(close-open)
+
+# rm(list=ls())
+
+#If you get warnings that say "uninitialized [something]", ignore that warning
+
