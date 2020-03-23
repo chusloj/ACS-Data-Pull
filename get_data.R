@@ -13,6 +13,8 @@ setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # PASTE YOUR DIRECTORY HERE
 # After you have run the code above, please either delete the code
 # or comment out the code using Ctrl-Shift-C
 
+rm(list=ls())
+
 
 library(tidyverse)
 library(tidycensus)
@@ -39,14 +41,14 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
 st <- "SC"     # state
-geo_level <- "place"  # geographic level. search "tidycensus" online to see different options
-cnty <- "Richland County"   # County
+geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
+cnty <- "Lexington County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- "Cayce city"
+name <- cnty_name
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
@@ -79,7 +81,6 @@ wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
 
 
-open <- Sys.time()
 
 # loop ----
 for(t in 1:nrow(tables)){
@@ -88,8 +89,8 @@ for(t in 1:nrow(tables)){
   df <- get_acs(geography=geo_level,
               table = tables[[t,1]],
               state = st,
-              # county = cnty,
-              if(geo_level=="place"){} else{county = cnty},
+              county = cnty,
+              # if(geo_level=="place"){} else{county = cnty},
               cache_table = TRUE,
               year = yr,
               survey = survey_type)
@@ -119,8 +120,8 @@ for(t in 1:nrow(tables)){
   df_2 <- get_acs(geography=geo_level,
                 table = tables[[t,1]],
                 state = st,
-                # county = cnty,
-                if(geo_level=="place"){} else{county = cnty},
+                county = cnty,
+                # if(geo_level=="place"){} else{county = cnty},
                 cache_table = TRUE,
                 year = yr,
                 survey = survey_type)
@@ -155,10 +156,7 @@ saveWorkbook(wb,write_file,overwrite = T)
 print(write_file)
 
 
-close <- Sys.time()
-print(close-open)
 
-# rm(list=ls())
 
-#If you get warnings that say "uninitialized [something]", ignore that warning
+#If you get warnings that say "unknown or uninitialised [something]", ignore that warning
 

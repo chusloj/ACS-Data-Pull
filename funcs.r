@@ -271,8 +271,8 @@ occup_ownrent.func <- function(df_insert){
   df_append <- get_acs(geography=geo_level,
                        table = "B25003",
                        state = st,
-                       # county = cnty,
-                       if(geo_level=="place"){} else{county = cnty},
+                       county = cnty,
+                       # if(geo_level=="place"){} else{county = cnty},
                        cache_table = TRUE,
                        year = yr,
                        survey = survey_type)
@@ -641,8 +641,8 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  if(geo_level=="place"){} else{county = cnty},
-                  # county = cnty,
+                  # if(geo_level=="place"){} else{county = cnty},
+                  county = cnty,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
@@ -668,8 +668,8 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  if(geo_level=="place"){} else{county = cnty},
-                  # county = cnty,
+                  # if(geo_level=="place"){} else{county = cnty},
+                  county = cnty,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
