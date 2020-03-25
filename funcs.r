@@ -88,6 +88,7 @@ hispan.func <- function(df_insert){
   fin_df <- fin_df %>%
     filter(str_detect(fin_df$label,"Latino!!"))
   fin_df$label <- str_remove_all(fin_df$label, "Estimate!!Total!!")
+  fin_df$label <- str_replace(fin_df$label,"!!",": ")
 
   write_df <- fin_df
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
@@ -271,13 +272,12 @@ occup_ownrent.func <- function(df_insert){
   df_append <- get_acs(geography=geo_level,
                        table = "B25003",
                        state = st,
-                       county = cnty,
-                       # if(geo_level=="place"){} else{county = cnty},
+                       county = cnty_val,
                        cache_table = TRUE,
                        year = yr,
                        survey = survey_type)
   
-  if(geo_level!="county"){
+  if(geo_level == "county subdivision" | geo_level == "place"){
     df_append <- df_append %>%
       filter(str_detect(NAME, name))
   }
@@ -641,13 +641,12 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  # if(geo_level=="place"){} else{county = cnty},
-                  county = cnty,
+                  county = cnty_val,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
     
-    if(geo_level!="county"){
+    if(geo_level == "county subdivision" | geo_level == "place"){
       df <- df %>%
         filter(str_detect(NAME, name))
     }
@@ -668,13 +667,12 @@ ownrace.func <- function(df_insert){
     df <- get_acs(geography=geo_level,
                   table = paste("B25003",str_to_upper(i),sep=""),
                   state = st,
-                  # if(geo_level=="place"){} else{county = cnty},
-                  county = cnty,
+                  county = cnty_val,
                   cache_table = TRUE,
                   year = yr,
                   survey = survey_type)
     
-    if(geo_level!="county"){
+    if(geo_level == "county subdivision" | geo_level == "place"){
       df <- df %>%
         filter(str_detect(NAME, name))
     }
@@ -792,3 +790,11 @@ commute.func <- function(df_insert){
   write_df <- data.frame(labels = col_labels, estimates = vals)
   writeData(wb,sht,write_df,startRow=row_count+5,startCol = col_num)
 }
+  
+  
+  
+  
+  
+  
+  
+  

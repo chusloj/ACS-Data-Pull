@@ -1,4 +1,6 @@
-### CALL TO FUNCTIONS FROM funcs.r ###
+### CALL TO FUNCTIONS FROM funcs.r + data pulls ###
+
+
 
 call.func <- function(t,df_func){
   

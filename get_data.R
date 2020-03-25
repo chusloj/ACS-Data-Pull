@@ -1,8 +1,3 @@
-# BEFORE ANYTHING, please select Session->Set Working Directory->"To Source File Location"
-# and copy the output you get from your console (below) into this "setwd" command vvv
-
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull") # PASTE YOUR DIRECTORY HERE
-
 # install.packages(
 #   "tidyverse",
 #   "tidycensus",
@@ -20,8 +15,8 @@ library(tidyverse)
 library(tidycensus)
 library(readxl)
 library(openxlsx)
-source("funcs.r")
-source("call.r")
+source("~/Documents/career/RKG/code/ACS-Data-Pull/funcs.r")
+source("~/Documents/career/RKG/code/ACS-Data-Pull/call.r")
 
 
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
@@ -40,15 +35,15 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
-st <- "SC"     # state
-geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
-cnty <- "Lexington County"   # County
+st <- "NH"     # state
+geo_level <- "county subdivision"  # geographic level. search "tidycensus" online to see different options
+cnty <- "Hillsborough County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- cnty_name
+name <- "Nashua city"
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
@@ -83,19 +78,21 @@ wb <- loadWorkbook(paste(data_path,read_file,sep=""))
 
 
 # loop ----
+cnty_require <- c("county","county subdivision","tract","block group")
+if(geo_level %in% cnty_require){cnty_val <- cnty} else {cnty_val <- NULL}
+
 for(t in 1:nrow(tables)){
   col_num <- 1
   yr <- acs_years[1]
   df <- get_acs(geography=geo_level,
               table = tables[[t,1]],
               state = st,
-              county = cnty,
-              # if(geo_level=="place"){} else{county = cnty},
+              county = cnty_val,
               cache_table = TRUE,
               year = yr,
               survey = survey_type)
 
-  if(geo_level!="county"){
+  if(geo_level == "county subdivision" | geo_level == "place"){
     df <- df %>%
       filter(str_detect(NAME, name))
   }
@@ -120,13 +117,12 @@ for(t in 1:nrow(tables)){
   df_2 <- get_acs(geography=geo_level,
                 table = tables[[t,1]],
                 state = st,
-                county = cnty,
-                # if(geo_level=="place"){} else{county = cnty},
+                county = cnty_val,
                 cache_table = TRUE,
                 year = yr,
                 survey = survey_type)
   
-  if(geo_level!="county"){
+  if(geo_level == "county subdivision" | geo_level == "place"){
     df_2 <- df_2 %>%
       filter(str_detect(NAME, name))
   }
