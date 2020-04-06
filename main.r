@@ -1,7 +1,9 @@
-get_data <- function(){
+data_collect <- function(){
   
-  setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+  setwd(getSrcDirectory("get_data.R")[1])
   
-  source("get_data.R")
+  # source("get_data.R")
+  
+  return(invisible())
   
 }

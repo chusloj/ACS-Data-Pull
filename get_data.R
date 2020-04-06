@@ -15,8 +15,8 @@ library(tidyverse)
 library(tidycensus)
 library(readxl)
 library(openxlsx)
-source("~/Documents/career/RKG/code/ACS-Data-Pull/funcs.r")
-source("~/Documents/career/RKG/code/ACS-Data-Pull/call.r")
+source("funcs.r")
+source("call.r")
 
 
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
@@ -36,14 +36,14 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
 st <- "NH"     # state
-geo_level <- "county subdivision"  # geographic level. search "tidycensus" online to see different options
+geo_level <- "state"  # geographic level. search "tidycensus" online to see different options
 cnty <- "Hillsborough County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- "Nashua city"
+name <- st
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert a custom name
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
