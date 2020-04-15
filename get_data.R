@@ -25,7 +25,7 @@ source("call.r")
 
 
 
-# Parameters ----
+# Parameters/FILEPATHS ----
 data_path <- "C:/Users/JCHUSL01/Downloads/OneDrive_1_4-15-2020/data"     # This is the path where "read_file" lives
 read_file <- "Data Pull_NashuaNH.xlsx"     # This is the file that contains codes for all tables you want to pull
 var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that contains the information mentioned above
@@ -40,10 +40,9 @@ geo_level <- "county"  # geographic level. search "tidycensus" online to see dif
 cnty <- "Hillsborough County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
-
-
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
 name <- cnty_name
+
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert the name of a custom place you're trying to 
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
