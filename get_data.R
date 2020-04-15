@@ -10,6 +10,8 @@
 
 rm(list=ls())
 
+setwd("C:/Users/JCHUSL01/Downloads/OneDrive_1_4-15-2020/code/ACS-Data-Pull")
+
 
 library(tidyverse)
 library(tidycensus)
@@ -21,12 +23,10 @@ source("call.r")
 
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
 
-census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551") # YOU NEED YOUR OWN
-
 
 
 # Parameters ----
-data_path <- "~/Documents/career/RKG/data/"     # This is the path where "read_file" lives
+data_path <- "C:/Users/JCHUSL01/Downloads/OneDrive_1_4-15-2020/data"     # This is the path where "read_file" lives
 read_file <- "Data Pull_NashuaNH.xlsx"     # This is the file that contains codes for all tables you want to pull
 var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that contains the information mentioned above
 
@@ -36,16 +36,16 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
 st <- "NH"     # state
-geo_level <- "state"  # geographic level. search "tidycensus" online to see different options
+geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
 cnty <- "Hillsborough County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- st
+name <- cnty_name
 # ******** IMPORTANT PLEASE READ **********
-# CHOOSE st, cnty_name, or insert a custom name
+# CHOOSE st, cnty_name, or insert the name of a custom place you're trying to 
 # If you do NOT use 'cnty_name', you MUST input the name exactly, CASE SENSITIVE, as it appears
 # in the data pulled from the acs
 
@@ -58,7 +58,7 @@ name <- st
 
 
 # labels ----
-labels <- read_excel(paste(data_path,read_file,sep=""),sheet=var_sheet)
+labels <- read_excel(paste(data_path,read_file,sep="/"),sheet=var_sheet)
 labels <- filter(labels, Source=="ACS Data")
 tables <- labels[2]
 
@@ -66,7 +66,7 @@ tables <- labels[2]
 
 
 # wb setup ----
-wb <- loadWorkbook(paste(data_path,read_file,sep=""))
+wb <- loadWorkbook(paste(data_path,read_file,sep="/"))
 # wb <- createWorkbook()
 
 
