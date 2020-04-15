@@ -19,7 +19,7 @@
 
 
 
-# Script: filename: `get_data.R`
+# Script: `get_data.R`
 This is only documentation for the file `get_data.R` since it's the only file that could have problems when running the code
 
 ## Setup
