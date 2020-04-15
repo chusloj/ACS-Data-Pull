@@ -1,3 +1,17 @@
+<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Notes](#notes)
+- [Script: filename: `get_data.R`](#script-filename-getdatar)
+	- [Setup](#setup)
+	- [Package installation](#package-installation)
+	- [Setting the working directory](#setting-the-working-directory)
+	- [" `parameters/FILEPATHS` "](#-parametersfilepaths-)
+	- [" `inputs` "](#-inputs-)
+		- [**Special note**: the `name` input](#special-note-the-name-input)
+- [Troubleshooting](#troubleshooting)
+
+<!-- /TOC -->
+
 # Notes
 - If there's some part of the code that's hopelessly broken, please email me.
 - Follow the instructions within the script itself to the letter (please)
@@ -70,14 +84,14 @@ When customizing the `inputs` section, you can look at
 [the documentation for the `tidycensus` package](https://walkerke.github.io/tidycensus/)
 for more information.
 
-- When inputting state (`state`), geography (`geo_level`) or county (`cnty`), the names 
+- When inputting state (`state`), geography (`geo_level`) or county (`cnty`), the names
 must appear exactly as they do in the database
   * If the code stops working because `R` says that it "doesn't recognize the geography",
   try changing the case of each word in any of the inputes I've mentioned. You can check
   the [census website](data.census.gov) to be sure of the name.
 
 ### **Special note**: the `name` input
-The `name` variable is used to name your file, but is also used to filter results based on the 
+The `name` variable is used to name your file, but is also used to filter results based on the
 geography you choose. Directions for how to use the `name` variable are:
 
 | Geography         | Instructions                                                                                                                                            |   |   |   |
@@ -96,7 +110,7 @@ The code for this part in `loop` is below:
 input_df <- inner_join(vars,df,by = "variable")
 ```
 
-If you find that the data has a strange or incorrect output, experiment with the value for 
+If you find that the data has a strange or incorrect output, experiment with the value for
 `name` based on the values you get in the original data pull from the `get_acs` function.
 
 That, by the way, is the first thing to appear in the `loop`:
