@@ -22,14 +22,14 @@ source("call.r")
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
 
 
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull")
+setwd("C:/Users/JCHUSL01/Downloads/OneDrive_1_4-15-2020/code/ACS-Data-Pull")
 
 census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551") # YOU NEED YOUR OWN
 
 
 
 # Parameters/FILEPATHS ----
-data_path <- "~/Documents/career/RKG/data"    # This is the path where "read_file" lives
+data_path <- "C:/Users/JCHUSL01/Downloads/OneDrive_1_4-15-2020/data"     # This is the path where "read_file" lives
 read_file <- "Data Pull_NashuaNH.xlsx"     # This is the file that contains codes for all tables you want to pull
 var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that contains the information mentioned above
 
