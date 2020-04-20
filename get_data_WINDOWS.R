@@ -149,7 +149,7 @@ for(t in 1:nrow(tables)){
 
 # save ----
 write_file <- paste(name,st,"Data.xlsx",sep="_")
-write_file <- paste(data_path,write_file,sep="")
+write_file <- paste(data_path,write_file,sep="/")
 saveWorkbook(wb,write_file,overwrite = T)
 print(write_file)
 

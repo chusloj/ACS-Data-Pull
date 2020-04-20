@@ -22,14 +22,14 @@ source("call.r")
 # %%%%%%%%%%%% BEGIN MESSING WITH THIS %%%%%%%%%%%%
 
 
-setwd("~/Documents/career/RKG/code/ACS-Data-Pull")
+setwd("~/Documents/work/RKG/code/ACS-Data-Pull")
 
 census_api_key("2f7688b42a2c229e0662079bf0f4f5400cbb7551") # YOU NEED YOUR OWN
 
 
 
 # Parameters/FILEPATHS ----
-data_path <- "~/Documents/career/RKG/data"    # This is the path where "read_file" lives
+data_path <- "~/Documents/work/RKG/data"    # This is the path where "read_file" lives
 read_file <- "Data Pull_NashuaNH.xlsx"     # This is the file that contains codes for all tables you want to pull
 var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that contains the information mentioned above
 
@@ -39,12 +39,12 @@ var_sheet <- "Data Pull"     # This specifies the sheet in "read_file" that cont
 # inputs ----
 acs_years <-c(2013,2018)   # Please pick 2 separate years
 st <- "NH"     # state
-geo_level <- "county"  # geographic level. search "tidycensus" online to see different options
+geo_level <- "county subdivision"  # geographic level. search "tidycensus" online to see different options
 cnty <- "Hillsborough County"   # County
 survey_type <- "acs5"   # 5-year ACS, 1-year ACS, etc...
 
 cnty_name <- str_replace(cnty," ","_") # Please do not touch this.
-name <- cnty_name
+name <- "Nashua city"
 
 # ******** IMPORTANT PLEASE READ **********
 # CHOOSE st, cnty_name, or insert the name of a custom place you're trying to 
@@ -149,7 +149,7 @@ for(t in 1:nrow(tables)){
 
 # save ----
 write_file <- paste(name,st,"Data.xlsx",sep="_")
-write_file <- paste(data_path,write_file,sep="")
+write_file <- paste(data_path,write_file,sep="/")
 saveWorkbook(wb,write_file,overwrite = T)
 print(write_file)
 

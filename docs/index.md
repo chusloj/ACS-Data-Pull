@@ -52,6 +52,12 @@ rm(list=ls())
 setwd("your_directory")
 ```
 
+
+<center> You have to do **both steps** in order for this to work (set the working directory manually and then copy it in) </center>
+
+
+
+
 ## " `parameters/FILEPATHS` "
 Filepath misspecificaiton is what prevented the script from running on windows to begin with.
 The key is this stupid feature of `R`:
