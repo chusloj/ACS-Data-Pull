@@ -94,7 +94,7 @@ for more information.
 must appear exactly as they do in the database
   * If the code stops working because `R` says that it "doesn't recognize the geography",
   try changing the case of each word in any of the inputes I've mentioned. You can check
-  the [census website](data.census.gov) to be sure of the name.
+  the [census website](https://data.census.gov/cedsci/) to be sure of the name.
 
 ### **Special note**: the `name` input
 The `name` variable is used to name your file, but is also used to filter results based on the
